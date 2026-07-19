@@ -1848,21 +1848,40 @@
 
       const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-      submitBtn.addEventListener('click', () => {
+      submitBtn.addEventListener('click', async () => {
         const v1 = validate('fname', 'fnameErr', v => v.length > 1);
         const v2 = validate('femail', 'femailErr', isEmail);
         const v3 = validate('fsubject', 'fsubjectErr', v => v.length > 1);
         const v4 = validate('fmessage', 'fmessageErr', v => v.length > 5);
 
-        if (v1 && v2 && v3 && v4) {
-          // Simulate send
-          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
-          submitBtn.disabled = true;
-          setTimeout(() => {
-            document.getElementById('formFields').style.display = 'none';
-            document.getElementById('formSuccess').classList.add('show');
-          }, 1400);
-        }
+if (v1 && v2 && v3 && v4) {
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+  submitBtn.disabled = true;
+  try {
+    const res = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        access_key: 'ec2c8e70-3642-4224-b1ea-f64fed86f5c9',
+        name: document.getElementById('fname').value.trim(),
+        email: document.getElementById('femail').value.trim(),
+        subject: document.getElementById('fsubject').value.trim(),
+        message: document.getElementById('fmessage').value.trim()
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('formFields').style.display = 'none';
+      document.getElementById('formSuccess').classList.add('show');
+    } else {
+      submitBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed — try email instead';
+      submitBtn.disabled = false;
+    }
+  } catch (err) {
+    submitBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed — try email instead';
+    submitBtn.disabled = false;
+  }
+}
       });
 
       // Live clear errors on input
